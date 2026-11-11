@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b8b4c8">
+  <title>Raising UP · Hamster Care</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #b8b4c8;
+      --panel: #a9bfcb;
+      --highlight: #d8d8d8;
+      --ink: #332d2a;
+      --muted: #5b5658;
+      --track: rgba(255, 255, 255, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem 1.25rem;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      width: min(100%, 58rem);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .back-link:hover,
+    .back-link:focus-visible {
+      background: var(--highlight);
+    }
+
+    .day-label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+    }
+
+    .subtitle {
+      margin: 0.45rem 0 1.5rem;
+      color: var(--muted);
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(17rem, 0.85fr);
+      gap: 1rem;
+    }
+
+    .card {
+      border-radius: 1.25rem;
+      background: var(--panel);
+      box-shadow: 0 0.5rem 1.5rem rgba(51, 45, 42, 0.08);
+    }
+
+    .pet-card {
+      display: flex;
+      min-height: 25rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .pet-frame {
+      display: grid;
+      width: min(100%, 19rem);
+      aspect-ratio: 1;
+      place-items: center;
+      overflow: hidden;
+      border: 0.65rem solid var(--highlight);
+      border-radius: 50%;
+      background: var(--highlight);
+    }
+
+    .pet-frame img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .pet-card h2 {
+      margin: 1.1rem 0 0.35rem;
+      font-size: 1.5rem;
+    }
+
+    .pet-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .side-panel {
+      display: grid;
+      align-content: start;
+      gap: 1rem;
+    }
+
+    .status-card,
+    .actions-card {
+      padding: 1.35rem;
+    }
+
+    h2 {
+      margin: 0 0 1.15rem;
+      font-size: 1.25rem;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 1.15rem;
+    }
+
+    .status-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.95rem;
+    }
+
+    .status-value {
+      font-weight: 700;
+    }
+
+    .status-track {
+      height: 0.7rem;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--track);
+    }
+
+    .status-fill {
+      width: 50%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--highlight);
+      transition: width 220ms ease;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .action-button {
+      display: flex;
+      min-height: 5.5rem;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.6rem;
+      border: 0;
+      border-radius: 1rem;
+      background: var(--highlight);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+
+    .action-button:hover {
+      filter: brightness(1.04);
+      transform: translateY(-2px);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
+    }
+
+    .action-button:focus-visible,
+    .back-link:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    .action-button img {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.6rem;
+      object-fit: cover;
+    }
+
+    .message {
+      min-height: 1.4rem;
+      margin: 0.9rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 42rem) {
+      body {
+        padding: 1.25rem 1rem;
+      }
+
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .pet-card {
+        min-height: auto;
+        padding: 1.5rem;
+      }
+
+      .pet-frame {
+        width: min(70vw, 17rem);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <a class="back-link" href="index.html">← Back to Home</a>
+      <p class="day-label">Hamster Care Journal · Day 1</p>
+    </header>
+
+    <h1>Raising UP</h1>
+    <p class="subtitle">Take good care of your little hamster and make every day a happy one.</p>
+
+    <div class="game-layout">
+      <section class="card pet-card" aria-labelledby="pet-name">
+        <div class="pet-frame">
+          <img src="cute.jpg" alt="A cute little hamster">
+        </div>
+        <h2 id="pet-name">Dango</h2>
+        <p id="pet-message" aria-live="polite">Dango is waiting for you to play.</p>
+      </section>
+
+      <div class="side-panel">
+        <section class="card status-card" aria-labelledby="status-title">
+          <h2 id="status-title">Today's Status</h2>
+          <div class="status-list">
+            <div class="status-item">
+              <div class="status-heading">
+                <span>Fullness</span>
+                <span class="status-value" id="satiety-value">68%</span>
+              </div>
+              <div class="status-track" role="progressbar" aria-label="Fullness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="68">
+                <div class="status-fill" id="satiety-bar" style="width: 68%"></div>
+              </div>
+            </div>
+            <div class="status-item">
+              <div class="status-heading">
+                <span>Hydration</span>
+                <span class="status-value" id="hydration-value">68%</span>
+              </div>
+              <div class="status-track" role="progressbar" aria-label="Hydration" aria-valuemin="0" aria-valuemax="100" aria-valuenow="68">
+                <div class="status-fill" id="hydration-bar" style="width: 68%"></div>
+              </div>
+            </div>
+            <div class="status-item">
+              <div class="status-heading">
+                <span>Mood</span>
+                <span class="status-value" id="mood-value">76%</span>
+              </div>
+              <div class="status-track" role="progressbar" aria-label="Mood" aria-valuemin="0" aria-valuemax="100" aria-valuenow="76">
+                <div class="status-fill" id="mood-bar" style="width: 76%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card actions-card" aria-labelledby="actions-title">
+          <h2 id="actions-title">Care for Dango</h2>
+          <div class="actions-grid">
+            <button class="action-button" type="button" data-action="feed">
+              <img src="food.jpg" alt="">
+              <span>Feed</span>
+            </button>
+            <button class="action-button" type="button" data-action="pet">
+              <img src="like_u.jpg" alt="">
+              <span>Pet</span>
+            </button>
+            <button class="action-button" type="button" data-action="clean">
+              <img src="raise.jpg" alt="">
+              <span>Clean Nest</span>
+            </button>
+            <button class="action-button" type="button" data-action="drink">
+              <img src="drink.jpg" alt="">
+              <span>Give Water</span>
+            </button>
+          </div>
+          <p class="message" id="action-message" aria-live="polite">Choose an action to take care of Dango.</p>
+        </section>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const stats = {
+      satiety: 68,
+      hydration: 68,
+      mood: 76
+    };
+
+    const actions = {
+      feed: {
+        changes: { satiety: 18, mood: 4 },
+        message: "Dango is enjoying the tasty food!"
+      },
+      pet: {
+        changes: { mood: 12 },
+        message: "Dango happily nuzzles your hand."
+      },
+      clean: {
+        changes: { mood: 8 },
+        message: "The nest is clean, and Dango is pleased."
+      },
+      drink: {
+        changes: { hydration: 22 },
+        message: "Dango happily drinks some fresh water."
+      }
+    };
+
+    function updateStat(name) {
+      const value = stats[name];
+      document.getElementById(`${name}-value`).textContent = `${value}%`;
+      const bar = document.getElementById(`${name}-bar`);
+      bar.style.width = `${value}%`;
+      bar.parentElement.setAttribute("aria-valuenow", String(value));
+    }
+
+    let actionAudioContext;
+    let careComplete = false;
+
+    function ensureActionAudioContext() {
+      if (!actionAudioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        actionAudioContext = new AudioCtor();
+      }
+      if (actionAudioContext.state === "suspended") {
+        actionAudioContext.resume();
+      }
+      return actionAudioContext;
+    }
+
+    function playActionSound(actionName) {
+      const context = ensureActionAudioContext();
+      if (!context) return;
+
+      const presets = {
+        feed: [[180, 0.00, 0.08], [220, 0.10, 0.08], [150, 0.20, 0.10]],
+        pet: [[660, 0.00, 0.09], [820, 0.09, 0.12]],
+        clean: [[310, 0.00, 0.06], [390, 0.07, 0.06], [460, 0.14, 0.08]],
+        drink: [[420, 0.00, 0.08], [520, 0.09, 0.08], [620, 0.18, 0.10]]
+      };
+      const notes = presets[actionName] || presets.pet;
+
+      notes.forEach(([frequency, delay, duration], index) => {
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        const startTime = context.currentTime + delay;
+        oscillator.type = actionName === "feed" ? "square" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        if (actionName === "drink") {
+          oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.4, startTime + duration);
+        } else {
+          oscillator.frequency.exponentialRampToValueAtTime(frequency * (index % 2 ? 1.08 : 0.92), startTime + duration);
+        }
+        gainNode.gain.setValueAtTime(0.0001, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.16, startTime + 0.012);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration + 0.02);
+      });
+    }
+
+    function completeCare() {
+      if (careComplete || !Object.values(stats).every((value) => value === 100)) {
+        return;
+      }
+
+      careComplete = true;
+      window.clearInterval(decayInterval);
+      window.setTimeout(() => window.location.assign("happiness.html"), 320);
+    }
+
+    function decayStats() {
+      Object.keys(stats).forEach((name) => {
+        stats[name] = Math.max(0, stats[name] - 1);
+        updateStat(name);
+      });
+    }
+
+    const decayInterval = window.setInterval(decayStats, 2000);
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const actionName = button.dataset.action;
+        playActionSound(actionName);
+        const action = actions[actionName];
+        Object.entries(action.changes).forEach(([name, amount]) => {
+          stats[name] = Math.max(0, Math.min(100, stats[name] + amount));
+          updateStat(name);
+        });
+        document.getElementById("action-message").textContent = action.message;
+        document.getElementById("pet-message").textContent = action.message;
+        completeCare();
+      });
+    });
+  </script>
+</body>
+</html>

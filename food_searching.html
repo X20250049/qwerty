@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b8b4c8">
+  <title>Food Searching · Hamster Care</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #b8b4c8;
+      --panel: #a9bfcb;
+      --highlight: #d8d8d8;
+      --ink: #332d2a;
+      --muted: #5b5658;
+      --accent: #e99b55;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem 1.25rem;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      width: min(100%, 58rem);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .back-link:hover,
+    .back-link:focus-visible {
+      background: var(--highlight);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+    }
+
+    .subtitle {
+      margin: 0.45rem 0 1.5rem;
+      color: var(--muted);
+    }
+
+    .game-card {
+      overflow: hidden;
+      border-radius: 1.25rem;
+      background: var(--panel);
+      box-shadow: 0 0.5rem 1.5rem rgba(51, 45, 42, 0.08);
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 0.8rem 1rem;
+      border-radius: 0.9rem;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .play-area {
+      position: relative;
+      height: clamp(27rem, 65vh, 39rem);
+      overflow: hidden;
+      border: 0.8rem solid rgba(255, 255, 255, 0.55);
+      background:
+        radial-gradient(ellipse at 50% 0, rgba(255, 255, 255, 0.62), transparent 68%),
+        repeating-linear-gradient(165deg, transparent 0 2.5rem, rgba(223, 204, 165, 0.15) 2.55rem 2.8rem),
+        #d9c9a7;
+      box-shadow: inset 0 0 1.2rem rgba(79, 63, 43, 0.2);
+      touch-action: none;
+    }
+
+    .play-area::before {
+      position: absolute;
+      inset: 0;
+      border: 0.45rem solid rgba(255, 255, 255, 0.2);
+      content: "";
+      pointer-events: none;
+    }
+
+    .bedding {
+      position: absolute;
+      right: 3%;
+      bottom: 4%;
+      left: 3%;
+      height: 15%;
+      border-radius: 50%;
+      background: rgba(177, 148, 103, 0.2);
+      filter: blur(0.25rem);
+      pointer-events: none;
+    }
+
+    .player {
+      position: absolute;
+      z-index: 3;
+      display: grid;
+      width: 4.5rem;
+      height: 4.5rem;
+      place-items: center;
+      border: 0.25rem solid #fff4dc;
+      border-radius: 50%;
+      background: #f1e4ce;
+      box-shadow: 0 0.3rem 0.75rem rgba(51, 45, 42, 0.28);
+      will-change: left, top, transform;
+      pointer-events: none;
+    }
+
+    .player img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .player.walking {
+      animation: walk-bob 180ms ease-in-out infinite alternate;
+    }
+
+    .player.happy {
+      animation: happy-hop 420ms ease-out;
+    }
+
+    @keyframes walk-bob {
+      to { transform: translateY(-0.2rem) rotate(4deg); }
+    }
+
+    @keyframes happy-hop {
+      35% { transform: translateY(-0.75rem) rotate(-12deg) scale(1.12); }
+      70% { transform: translateY(0.1rem) rotate(8deg) scale(0.96); }
+    }
+
+    .food {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      min-width: 3.8rem;
+      min-height: 2.5rem;
+      place-items: center;
+      padding: 0.35rem 0.55rem;
+      border: 2px solid rgba(139, 102, 52, 0.4);
+      border-radius: 999px;
+      background: #fff1bd;
+      box-shadow: 0 0.2rem 0.45rem rgba(51, 45, 42, 0.18);
+      color: #674b2c;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: food-glow 1.1s ease-in-out infinite alternate;
+    }
+
+    .food:nth-of-type(even) {
+      background: #f3d982;
+    }
+
+    @keyframes food-glow {
+      to { transform: scale(1.06); }
+    }
+
+    .obstacle {
+      position: absolute;
+      z-index: 1;
+      border: 0.3rem solid rgba(112, 78, 52, 0.3);
+      border-radius: 1.2rem 1.5rem 1rem 1.3rem;
+      background:
+        radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.24), transparent 45%),
+        #9b8065;
+      box-shadow: 0 0.35rem 0.5rem rgba(51, 45, 42, 0.22);
+      pointer-events: none;
+    }
+
+    .bomb {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      width: 3.6rem;
+      height: 3.6rem;
+      place-items: center;
+      border: 0.25rem solid #f3b2a7;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #ef7770, #a92832 72%);
+      box-shadow: 0 0.25rem 0.55rem rgba(51, 45, 42, 0.3);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+
+    .bomb::before {
+      position: absolute;
+      top: -0.5rem;
+      width: 0.65rem;
+      height: 0.55rem;
+      border-radius: 0.35rem 0.35rem 0 0;
+      background: #57483c;
+      content: "";
+    }
+
+    .level-complete {
+      position: fixed;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background: rgba(51, 45, 42, 0.48);
+    }
+
+    .level-complete[hidden] {
+      display: none;
+    }
+
+    .level-complete-box {
+      width: min(100%, 24rem);
+      padding: 1.75rem;
+      border: 0.3rem solid rgba(255, 255, 255, 0.7);
+      border-radius: 1.25rem;
+      background: #fff7e8;
+      box-shadow: 0 1rem 3rem rgba(51, 45, 42, 0.28);
+      text-align: center;
+    }
+
+    .level-complete-box h2 {
+      margin: 0 0 0.5rem;
+      color: var(--ink);
+      font-size: 1.8rem;
+    }
+
+    .level-complete-box p {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+    }
+
+    .level-complete-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .game-over {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 1.25rem;
+      padding: 2rem;
+      background: rgba(179, 25, 39, 0.94);
+      color: #fff;
+      text-align: center;
+    }
+
+    .game-over[hidden] {
+      display: none;
+    }
+
+    .game-over h2 {
+      margin: 0;
+      font-size: clamp(3.5rem, 14vw, 7rem);
+      letter-spacing: 0.08em;
+    }
+
+    .game-over p {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .game-over .game-button {
+      background: #fff;
+      color: #8e1d29;
+    }
+
+    .game-footer {
+      display: flex;
+      min-height: 4.5rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+    }
+
+    .message {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .game-button {
+      min-height: 2.8rem;
+      padding: 0.65rem 1.1rem;
+      border: 0;
+      border-radius: 999px;
+      background: var(--highlight);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .game-button.primary {
+      background: var(--accent);
+    }
+
+    .game-button:hover {
+      filter: brightness(1.04);
+    }
+
+    .game-button:focus-visible,
+    .back-link:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    .game-button[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 42rem) {
+      body {
+        padding: 1.25rem 1rem;
+      }
+
+      .hud {
+        gap: 0.4rem;
+        padding: 0.7rem;
+      }
+
+      .stat {
+        padding: 0.65rem 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.78rem;
+      }
+
+      .stat-value {
+        font-size: 1.05rem;
+      }
+
+      .play-area {
+        height: 60vh;
+        min-height: 25rem;
+        border-width: 0.45rem;
+      }
+
+      .game-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <a class="back-link" href="index.html">← Back to Home</a>
+      <span>Hamster Food Hunt</span>
+    </header>
+
+    <h1>Food Searching</h1>
+    <p class="subtitle">Use the arrow keys to guide Dango around the habitat and collect every treat.</p>
+
+    <section class="game-card" aria-label="Food searching game">
+      <div class="hud" aria-live="polite">
+        <div class="stat">
+          <span class="stat-label">Level</span>
+          <span class="stat-value" id="level-value">1 / 5</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="score-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Food Left</span>
+          <span class="stat-value" id="food-value">6</span>
+        </div>
+      </div>
+
+      <div class="play-area" id="play-area" role="application" aria-label="Hamster habitat. Use the arrow keys to move.">
+        <div class="bedding" aria-hidden="true"></div>
+        <div class="player" id="player" aria-label="Dango the hamster">
+          <img src="fooding.jpg" alt="Dango the hamster">
+        </div>
+      </div>
+
+      <div class="game-footer">
+        <p class="message" id="message" aria-live="polite">Find all the food! Arrow keys to move.</p>
+        <button class="game-button primary" id="next-button" type="button" hidden>Next Level</button>
+        <button class="game-button" id="restart-button" type="button">Restart</button>
+      </div>
+    </section>
+
+    <section class="level-complete" id="level-complete" role="dialog" aria-modal="true" aria-labelledby="level-complete-title" hidden>
+      <div class="level-complete-box">
+        <h2 id="level-complete-title">Level Complete!</h2>
+        <p id="level-complete-text">Dango found every treat.</p>
+        <div class="level-complete-actions">
+          <button class="game-button" id="complete-restart-button" type="button">Restart</button>
+          <button class="game-button primary" id="complete-next-button" type="button">Next Level</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-over" id="game-over" aria-labelledby="game-over-title" aria-live="assertive" hidden>
+      <h2 id="game-over-title">RESTART</h2>
+      <p>Dango touched a bomb. Try this level again!</p>
+      <button class="game-button" id="retry-button" type="button">Restart Level</button>
+    </section>
+  </main>
+
+  <script>
+    const playArea = document.getElementById("play-area");
+    const player = document.getElementById("player");
+    const levelDisplay = document.getElementById("level-value");
+    const scoreDisplay = document.getElementById("score-value");
+    const foodDisplay = document.getElementById("food-value");
+    const message = document.getElementById("message");
+    const nextButton = document.getElementById("next-button");
+    const restartButton = document.getElementById("restart-button");
+    const gameOverScreen = document.getElementById("game-over");
+    const retryButton = document.getElementById("retry-button");
+    const levelCompleteScreen = document.getElementById("level-complete");
+    const levelCompleteText = document.getElementById("level-complete-text");
+    const completeRestartButton = document.getElementById("complete-restart-button");
+    const completeNextButton = document.getElementById("complete-next-button");
+    const foodTypes = ["Sunflower", "Corn", "Peanut", "Oats", "Pumpkin", "Millet"];
+    const totalLevels = 5;
+    const playerSize = 72;
+    const playerSpeed = 220;
+    const keysDown = new Set();
+
+    let level = 1;
+    let score = 0;
+    let playerX = 0;
+    let playerY = 0;
+    let foods = [];
+    let obstacles = [];
+    let bombs = [];
+    let levelComplete = false;
+    let levelStartScore = 0;
+    let lastFrame = performance.now();
+    let happyTimeout;
+    let foodAudioContext;
+
+    function ensureFoodAudioContext() {
+      if (!foodAudioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        foodAudioContext = new AudioCtor();
+      }
+      if (foodAudioContext.state === "suspended") foodAudioContext.resume();
+      return foodAudioContext;
+    }
+
+    function playFoodSound() {
+      const context = ensureFoodAudioContext();
+      if (!context) return;
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(520, context.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(780, context.currentTime + 0.09);
+      gainNode.gain.setValueAtTime(0.0001, context.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.13, context.currentTime + 0.012);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.14);
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.16);
+    }
+
+    function playBombSound() {
+      const context = ensureFoodAudioContext();
+      if (!context) return;
+      const duration = 0.38;
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(180, context.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(45, context.currentTime + duration);
+      gainNode.gain.setValueAtTime(0.0001, context.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.018);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + duration + 0.02);
+    }
+
+    function overlaps(a, b, padding = 0) {
+      return a.x < b.x + b.width + padding &&
+        a.x + a.width + padding > b.x &&
+        a.y < b.y + b.height + padding &&
+        a.y + a.height + padding > b.y;
+    }
+
+    function placeAtRandom(width, height, occupied, padding = 16) {
+      const bounds = { width: playArea.clientWidth, height: playArea.clientHeight };
+      const maxX = Math.max(0, bounds.width - width);
+      const maxY = Math.max(0, bounds.height - height);
+
+      for (let attempt = 0; attempt < 160; attempt += 1) {
+        const candidate = {
+          x: Math.random() * maxX,
+          y: Math.random() * maxY,
+          width,
+          height
+        };
+        if (!occupied.some((item) => overlaps(candidate, item, padding))) {
+          return candidate;
+        }
+      }
+
+      return {
+        x: Math.random() * maxX,
+        y: Math.random() * maxY,
+        width,
+        height
+      };
+    }
+
+    function updateHud() {
+      levelDisplay.textContent = `${level} / ${totalLevels}`;
+      scoreDisplay.textContent = String(score);
+      foodDisplay.textContent = String(foods.length);
+    }
+
+    function renderPlayer() {
+      player.style.left = `${playerX}px`;
+      player.style.top = `${playerY}px`;
+    }
+
+    function startLevel(nextLevel) {
+      level = nextLevel;
+      levelComplete = false;
+      levelStartScore = score;
+      keysDown.clear();
+      playArea.querySelectorAll(".food, .obstacle, .bomb").forEach((item) => item.remove());
+      obstacles = [];
+      bombs = [];
+      foods = [];
+      nextButton.hidden = true;
+      gameOverScreen.hidden = true;
+      levelCompleteScreen.hidden = true;
+      restartButton.textContent = "Restart";
+
+      const bounds = { width: playArea.clientWidth, height: playArea.clientHeight };
+      playerX = (bounds.width - playerSize) / 2;
+      playerY = (bounds.height - playerSize) / 2;
+      renderPlayer();
+
+      const obstacleCount = Math.min(7, Math.max(0, level - 1) * 2);
+      for (let index = 0; index < obstacleCount; index += 1) {
+        const width = 64 + Math.random() * 38;
+        const height = 48 + Math.random() * 24;
+        const obstacle = placeAtRandom(width, height, [
+          { x: playerX, y: playerY, width: playerSize, height: playerSize },
+          ...obstacles
+        ], 36);
+        obstacles.push(obstacle);
+
+        const element = document.createElement("div");
+        element.className = "obstacle";
+        element.setAttribute("aria-hidden", "true");
+        obstacle.element = element;
+        element.style.left = `${obstacle.x}px`;
+        element.style.top = `${obstacle.y}px`;
+        element.style.width = `${obstacle.width}px`;
+        element.style.height = `${obstacle.height}px`;
+        playArea.append(element);
+      }
+
+      const bombCount = level >= 3 ? Math.min(3, level - 2) : 0;
+      for (let index = 0; index < bombCount; index += 1) {
+        const bomb = placeAtRandom(58, 58, [
+          { x: playerX, y: playerY, width: playerSize, height: playerSize },
+          ...obstacles,
+          ...bombs
+        ], 36);
+        bombs.push(bomb);
+
+        const element = document.createElement("div");
+        element.className = "bomb";
+        element.textContent = "BOMB";
+        element.setAttribute("aria-label", "Bomb");
+        bomb.element = element;
+        element.style.left = `${bomb.x}px`;
+        element.style.top = `${bomb.y}px`;
+        playArea.append(element);
+      }
+
+      const foodCount = 6 + (level - 1) * 3;
+      for (let index = 0; index < foodCount; index += 1) {
+        const element = document.createElement("span");
+        element.className = "food";
+        element.textContent = foodTypes[index % foodTypes.length];
+        element.setAttribute("aria-label", element.textContent);
+        playArea.append(element);
+
+        const food = placeAtRandom(element.offsetWidth, element.offsetHeight, [
+          { x: playerX, y: playerY, width: playerSize, height: playerSize },
+          ...obstacles,
+          ...bombs,
+          ...foods
+        ], 24);
+        food.element = element;
+        foods.push(food);
+        element.style.left = `${food.x}px`;
+        element.style.top = `${food.y}px`;
+      }
+
+      message.textContent = level === 1
+        ? "Find all the food! Arrow keys to move."
+        : `Level ${level}: More food and obstacles are waiting!`;
+      updateHud();
+    }
+
+    function collectFood() {
+      const playerBounds = {
+        x: playerX + 8,
+        y: playerY + 8,
+        width: playerSize - 16,
+        height: playerSize - 16
+      };
+
+      foods = foods.filter((food) => {
+        if (!overlaps(playerBounds, food, 2)) return true;
+        food.element.remove();
+        playFoodSound();
+        score += 10;
+        player.classList.remove("happy");
+        void player.offsetWidth;
+        player.classList.add("happy");
+        window.clearTimeout(happyTimeout);
+        happyTimeout = window.setTimeout(() => player.classList.remove("happy"), 450);
+        message.textContent = `Yum! Dango found ${food.element.textContent.toLowerCase()}!`;
+        return false;
+      });
+
+      updateHud();
+      if (foods.length === 0) {
+        levelComplete = true;
+        keysDown.clear();
+        player.classList.remove("walking");
+        message.textContent = `Level ${level} complete! Dango found every treat.`;
+        levelCompleteText.textContent = `Dango found every treat in Level ${level}.`;
+        completeNextButton.textContent = level === totalLevels ? "Finish" : "Next Level";
+        levelCompleteScreen.hidden = false;
+        completeNextButton.focus();
+      }
+    }
+
+    function movePlayer(delta) {
+      if (levelComplete || keysDown.size === 0) {
+        player.classList.remove("walking");
+        return;
+      }
+
+      let moveX = 0;
+      let moveY = 0;
+      if (keysDown.has("ArrowLeft") || keysDown.has("a")) moveX -= 1;
+      if (keysDown.has("ArrowRight") || keysDown.has("d")) moveX += 1;
+      if (keysDown.has("ArrowUp") || keysDown.has("w")) moveY -= 1;
+      if (keysDown.has("ArrowDown") || keysDown.has("s")) moveY += 1;
+
+      if (moveX === 0 && moveY === 0) {
+        player.classList.remove("walking");
+        return;
+      }
+
+      player.classList.add("walking");
+      const distance = playerSpeed * delta / Math.hypot(moveX, moveY);
+      const bounds = { width: playArea.clientWidth, height: playArea.clientHeight };
+      const nextX = Math.max(0, Math.min(bounds.width - playerSize, playerX + moveX * distance));
+      const nextY = Math.max(0, Math.min(bounds.height - playerSize, playerY + moveY * distance));
+
+      const horizontal = { x: nextX, y: playerY, width: playerSize, height: playerSize };
+      if (!obstacles.some((obstacle) => overlaps(horizontal, obstacle))) {
+        playerX = nextX;
+      }
+
+      const vertical = { x: playerX, y: nextY, width: playerSize, height: playerSize };
+      if (!obstacles.some((obstacle) => overlaps(vertical, obstacle))) {
+        playerY = nextY;
+      }
+
+      renderPlayer();
+      const playerBounds = { x: playerX + 8, y: playerY + 8, width: playerSize - 16, height: playerSize - 16 };
+      if (bombs.some((bomb) => overlaps(playerBounds, bomb))) {
+        playBombSound();
+        levelComplete = true;
+        keysDown.clear();
+        player.classList.remove("walking");
+        gameOverScreen.hidden = false;
+        retryButton.focus();
+        return;
+      }
+      collectFood();
+    }
+
+    function animate(now) {
+      const delta = Math.min((now - lastFrame) / 1000, 0.05);
+      lastFrame = now;
+      movePlayer(delta);
+      window.requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        event.preventDefault();
+      }
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d"].includes(event.key)) {
+        keysDown.add(event.key);
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      keysDown.delete(event.key);
+    });
+
+    window.addEventListener("blur", () => keysDown.clear());
+
+    nextButton.addEventListener("click", () => {
+      if (level < totalLevels) startLevel(level + 1);
+    });
+
+    completeRestartButton.addEventListener("click", () => {
+      score = levelStartScore;
+      startLevel(level);
+    });
+
+    completeNextButton.addEventListener("click", () => {
+      if (level < totalLevels) {
+        startLevel(level + 1);
+      } else {
+        window.location.assign("food_champion.html");
+      }
+    });
+
+    restartButton.addEventListener("click", () => {
+      score = 0;
+      startLevel(1);
+    });
+
+    retryButton.addEventListener("click", () => {
+      score = levelStartScore;
+      startLevel(level);
+    });
+
+    function findOpenPosition(item, occupied, bounds) {
+      const maxX = Math.max(0, bounds.width - item.width);
+      const maxY = Math.max(0, bounds.height - item.height);
+
+      for (const padding of [8, 0]) {
+        const xPositions = [];
+        const yPositions = [];
+        for (let x = 0; x < maxX; x += 4) xPositions.push(x);
+        for (let y = 0; y < maxY; y += 4) yPositions.push(y);
+        xPositions.push(maxX);
+        yPositions.push(maxY);
+
+        for (const y of yPositions) {
+          for (const x of xPositions) {
+            const candidate = { x, y, width: item.width, height: item.height };
+            if (!occupied.some((other) => overlaps(candidate, other, padding))) {
+              return candidate;
+            }
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function repositionItems(items, occupied, bounds) {
+      const orderedItems = [...items].sort((a, b) => b.width * b.height - a.width * a.height);
+      let couldNotFitItem = false;
+
+      orderedItems.forEach((item) => {
+        item.width = item.element.offsetWidth;
+        item.height = item.element.offsetHeight;
+        const position = findOpenPosition(item, occupied, bounds);
+        if (position) {
+          Object.assign(item, position);
+        } else {
+          const maxX = Math.max(0, bounds.width - item.width);
+          const maxY = Math.max(0, bounds.height - item.height);
+          item.x = Math.max(0, Math.min(maxX, item.x));
+          item.y = Math.max(0, Math.min(maxY, item.y));
+          couldNotFitItem = true;
+        }
+
+        item.element.style.left = `${item.x}px`;
+        item.element.style.top = `${item.y}px`;
+        occupied.push(item);
+      });
+
+      if (couldNotFitItem) {
+        message.textContent = "The habitat is too small to arrange every item. Enlarge the window and try again.";
+      }
+    }
+
+    window.addEventListener("resize", () => {
+      const bounds = { width: playArea.clientWidth, height: playArea.clientHeight };
+      playerX = Math.max(0, Math.min(bounds.width - playerSize, playerX));
+      playerY = Math.max(0, Math.min(bounds.height - playerSize, playerY));
+      renderPlayer();
+
+      const occupied = [{
+        x: playerX,
+        y: playerY,
+        width: playerSize,
+        height: playerSize
+      }];
+      repositionItems([...obstacles, ...bombs, ...foods], occupied, bounds);
+    });
+
+    startLevel(1);
+    window.requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

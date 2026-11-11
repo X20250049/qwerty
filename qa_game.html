@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b8b4c8">
+  <title>Hamster Q&amp;A · My Hamster</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #b8b4c8;
+      --panel: #a9bfcb;
+      --highlight: #d8d8d8;
+      --ink: #332d2a;
+      --muted: #5b5658;
+      --success: #577c55;
+      --error: #a64444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem 1.25rem;
+      place-items: center;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      width: min(100%, 42rem);
+      padding: 1.5rem 2rem;
+      border-radius: 1rem;
+      background: var(--panel);
+      box-shadow: 0 0.5rem 1.5rem rgba(51, 45, 42, 0.08);
+    }
+
+    .topbar,
+    .score-row,
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .back-link:hover,
+    .back-link:focus-visible {
+      background: var(--highlight);
+    }
+
+    h1 {
+      margin: 1.25rem 0 0.4rem;
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+
+    .subtitle {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .score-row {
+      padding: 1rem;
+      border-radius: 0.9rem;
+      background: rgba(255, 255, 255, 0.42);
+      font-weight: 700;
+    }
+
+    .score-row span:last-child {
+      font-size: 1.2rem;
+    }
+
+    .question-card {
+      margin-top: 1rem;
+      padding: 1.35rem;
+      border-radius: 0.9rem;
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .question-count {
+      margin: 0 0 0.7rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .question-text {
+      margin: 0 0 1.25rem;
+      font-size: 1.25rem;
+      line-height: 1.45;
+    }
+
+    .choices {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .choice-button,
+    .action-button {
+      min-height: 3rem;
+      padding: 0.75rem 1rem;
+      border: 0;
+      border-radius: 0.75rem;
+      background: var(--highlight);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .choice-button:hover:not(:disabled),
+    .action-button:hover {
+      filter: brightness(1.04);
+    }
+
+    .choice-button:disabled {
+      cursor: default;
+      opacity: 0.72;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    .action-button {
+      padding-inline: 1.2rem;
+      text-align: center;
+    }
+
+    .action-button.primary {
+      background: #e6c88f;
+    }
+
+    .action-button[hidden],
+    .question-view[hidden],
+    .results-view[hidden],
+    .feedback[hidden] {
+      display: none;
+    }
+
+    .results-view {
+      padding: 2rem 0 1rem;
+      text-align: center;
+    }
+
+    .results-view h2 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+
+    .final-score {
+      margin: 0 0 1.5rem;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .final-score strong {
+      color: var(--ink);
+      font-size: 1.8rem;
+    }
+
+    .feedback {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      padding: 1.25rem;
+      place-items: center;
+      background: rgba(51, 45, 42, 0.48);
+    }
+
+    .feedback-card {
+      width: min(100%, 28rem);
+      padding: 2rem;
+      border-radius: 1rem;
+      background: var(--panel);
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .feedback-card h2 {
+      margin: 0 0 0.75rem;
+      color: var(--success);
+      font-size: 1.8rem;
+    }
+
+    .feedback-card.incorrect h2 {
+      color: var(--error);
+    }
+
+    .feedback-card p {
+      margin: 0 0 1.25rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 34rem) {
+      body {
+        padding: 1rem;
+      }
+
+      main {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topbar">
+      <a class="back-link" href="index.html">← Back to Home</a>
+      <span>Hamster Quiz</span>
+    </header>
+
+    <section class="question-view" id="question-view" aria-labelledby="page-title">
+      <h1 id="page-title">Hamster Q&amp;A</h1>
+      <p class="subtitle">Choose the best answer and see how much you know about hamsters!</p>
+
+      <div class="score-row" aria-live="polite">
+        <span>Score</span>
+        <span><span id="score-value">0</span> points</span>
+      </div>
+
+      <section class="question-card" aria-live="polite">
+        <p class="question-count" id="question-count">Question 1 of 5</p>
+        <h2 class="question-text" id="question-text"></h2>
+        <div class="choices" id="choices"></div>
+      </section>
+    </section>
+
+    <section class="results-view" id="results-view" aria-labelledby="results-title" hidden>
+      <h2 id="results-title">Quiz Complete!</h2>
+      <p class="final-score">Your final score:<br><strong id="final-score">0 / 50</strong></p>
+      <button class="action-button primary" id="restart-button" type="button">Play Again</button>
+      <a class="back-link" href="index.html">← Back to Home</a>
+    </section>
+  </main>
+
+  <section class="feedback" id="feedback" role="status" aria-live="assertive" aria-labelledby="feedback-title" aria-describedby="feedback-message" hidden>
+    <div class="feedback-card" id="feedback-card">
+      <h2 id="feedback-title"></h2>
+      <p id="feedback-message"></p>
+    </div>
+  </section>
+
+  <script>
+    const questions = [
+      {
+        question: "Is it suitable for hamsters to sunbathe?",
+        options: ["A. They should get lots of direct sunlight", "B. Keep them out of direct sunlight"],
+        answer: 1
+      },
+      {
+        question: "Can hamsters be bathed in water?",
+        options: ["A. Yes, wash them with water", "B. Use a sand bath instead"],
+        answer: 1
+      },
+      {
+        question: "What type of hamster is a Purple Sapphire?",
+        options: ["A. A Syrian hamster", "B. A dwarf hamster"],
+        answer: 1
+      },
+      {
+        question: "Can hamsters eat chocolate?",
+        options: ["A. No, they cannot", "B. They can have a little"],
+        answer: 0
+      },
+      {
+        question: "Hamsters are social animals. Can they live together?",
+        options: ["A. Yes, they can live together", "B. Most should not be housed together because they may fight"],
+        answer: 1
+      }
+    ];
+
+    const questionView = document.getElementById("question-view");
+    const resultsView = document.getElementById("results-view");
+    const questionCount = document.getElementById("question-count");
+    const questionText = document.getElementById("question-text");
+    const choices = document.getElementById("choices");
+    const scoreValue = document.getElementById("score-value");
+    const restartButton = document.getElementById("restart-button");
+    const feedback = document.getElementById("feedback");
+    const feedbackCard = document.getElementById("feedback-card");
+    const feedbackTitle = document.getElementById("feedback-title");
+    const feedbackMessage = document.getElementById("feedback-message");
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+    let quizAudioContext;
+
+    function ensureQuizAudioContext() {
+      if (!quizAudioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        quizAudioContext = new AudioCtor();
+      }
+      if (quizAudioContext.state === "suspended") quizAudioContext.resume();
+      return quizAudioContext;
+    }
+
+    function playAnswerSound(correct) {
+      const context = ensureQuizAudioContext();
+      if (!context) return;
+      const notes = correct
+        ? [[660, 0, 0.12], [880, 0.12, 0.16]]
+        : [[220, 0, 0.16], [155, 0.16, 0.22]];
+
+      notes.forEach(([frequency, delay, duration]) => {
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+        const startTime = context.currentTime + delay;
+        oscillator.type = correct ? "sine" : "sawtooth";
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        if (!correct) oscillator.frequency.linearRampToValueAtTime(frequency * 0.65, startTime + duration);
+        gainNode.gain.setValueAtTime(0.0001, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(correct ? 0.14 : 0.12, startTime + 0.015);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration + 0.02);
+      });
+    }
+
+    function renderQuestion() {
+      const current = questions[currentQuestion];
+      questionCount.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+      questionText.textContent = current.question;
+      choices.replaceChildren();
+      current.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "choice-button";
+        button.type = "button";
+        button.textContent = option;
+        button.addEventListener("click", () => selectAnswer(index));
+        choices.append(button);
+      });
+      answered = false;
+      choices.querySelector("button").focus();
+    }
+
+    function advanceQuestion() {
+      feedback.hidden = true;
+      if (currentQuestion === questions.length - 1) {
+        showResults();
+        return;
+      }
+      currentQuestion += 1;
+      renderQuestion();
+    }
+
+    function selectAnswer(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      const current = questions[currentQuestion];
+      const correct = selectedIndex === current.answer;
+      choices.querySelectorAll("button").forEach((button) => {
+        button.disabled = true;
+      });
+
+      feedbackCard.classList.toggle("incorrect", !correct);
+      playAnswerSound(correct);
+      if (correct) {
+        score += 10;
+        scoreValue.textContent = String(score);
+        feedbackTitle.textContent = "Excellent!";
+        feedbackMessage.textContent = "That's the right answer! You earned 10 points.";
+      } else {
+        feedbackTitle.textContent = "Not quite!";
+        feedbackMessage.textContent = `The correct answer is ${current.options[current.answer]}. No points were deducted.`;
+      }
+
+      feedback.hidden = false;
+      window.setTimeout(advanceQuestion, 1400);
+    }
+
+    function showResults() {
+      document.getElementById("final-score").textContent = `${score} / ${questions.length * 10}`;
+      questionView.hidden = true;
+      resultsView.hidden = false;
+    }
+
+    restartButton.addEventListener("click", () => {
+      currentQuestion = 0;
+      score = 0;
+      scoreValue.textContent = "0";
+      resultsView.hidden = true;
+      questionView.hidden = false;
+      renderQuestion();
+    });
+
+    renderQuestion();
+  </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Hamster</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 2.5rem;
+      box-sizing: border-box;
+      background-color: #b8b4c8;
+      color: #332d2a;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+    }
+
+    main {
+      max-width: 52rem;
+      margin: 2.5rem auto;
+      padding: 2rem 2.5rem;
+      border-radius: 1.25rem;
+      background-color: #a9bfcb;
+      box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin: 0 0 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.9rem;
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.9rem;
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 0.95rem;
+      padding: 0.8rem 1.1rem;
+      color: #332d2a;
+      text-decoration: none;
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+
+    a img {
+      width: 5.2rem;
+      height: 5.2rem;
+      object-fit: cover;
+      border-radius: 0.8rem;
+    }
+
+    a:hover,
+    a:focus-visible {
+      border-radius: 999px;
+      background-color: #d8d8d8;
+      transition: background-color 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>My Hamster</h1>
+    <nav aria-label="Main navigation">
+      <a href="raising_up.html"><img src="raise.jpg" alt="">Raising UP</a>
+      <a href="escape_running.html"><img src="run.jpg" alt="">Escape Running</a>
+      <a href="food_searching.html"><img src="food.jpg" alt="">Food Searching</a>
+      <a href="qa_game.html"><img src="qa.jpg" alt="">Q&amp;A</a>
+    </nav>
+  </main>
+</body>
+</html>
